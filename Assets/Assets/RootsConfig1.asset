@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 39c5feb7777ce444eb561e31d8b8a72b, type: 3}
+  m_Name: RootsConfig1
+  m_EditorClassIdentifier: 
+  segmentPrefab: {fileID: 3110020048797401804, guid: 9790580bebc8c0f428a36b44715e62de, type: 3}
+  segmentLength: 2
+  branchWobbliness: 0.3
+  curveSubdivisions: 6
+  thicknessFactor: 0.15
+  growthSpeed: 1
+  maxDepth: 20
+  rootPointLight: {fileID: 8575486205618485965, guid: 609fe2dd7603c01479cc8b6a7bc3e386, type: 3}
+  rootNodeCollider: {fileID: 1755771985733008411, guid: f29cd3f4cb4822f4ebfd77f553a97dde, type: 3}
