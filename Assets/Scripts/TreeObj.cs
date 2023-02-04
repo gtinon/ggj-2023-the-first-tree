@@ -12,6 +12,9 @@ public class TreeObj : MonoBehaviour
     public float energy;
     public float minerals;
 
+    public float resourceCycleTime = 5f;
+    private float timeToNextCycle = float.MaxValue;
+
     void Start()
     {
         overground = CreateBranch(null, false);
@@ -20,6 +23,12 @@ public class TreeObj : MonoBehaviour
 
     void Update()
     {
+        // get resources
+        // underground.
+
+        // spend some for maintenance
+
+        // spend some for automatic overground growth
     }
 
     public TreeSegment CreateBranch(TreePoint parent, bool left)
@@ -56,6 +65,12 @@ public class TreeObj : MonoBehaviour
 
         seg.Init(parent, relativeAngle);
 
+        // start the game if necessary
+        if (timeToNextCycle > 10)
+        {
+            timeToNextCycle = resourceCycleTime;
+        }
+
         return seg;
     }
 
@@ -72,6 +87,12 @@ public class TreeObj : MonoBehaviour
         float angleInDeg = Vector2.SignedAngle(Vector2.up, dir);
         Debug.Log("angle deg=" + angleInDeg);
         seg.Init(parent, angleInDeg);
+
+        // start the game if necessary
+        if (timeToNextCycle > 10)
+        {
+            timeToNextCycle = resourceCycleTime;
+        }
 
         return seg;
     }

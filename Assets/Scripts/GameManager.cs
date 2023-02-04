@@ -11,9 +11,16 @@ public class GameManager : MonoBehaviour
     private readonly Collider2D[] results = new Collider2D[50];
     private Camera cam;
 
+    private int rootNodesLayerMask;
+    private int rocksLayerMask;
+    private int resourcesLayerMask;
+
     void Start()
     {
         cam = Camera.main;
+        rootNodesLayerMask = 1 << LayerMask.NameToLayer("RootNodes");
+        rocksLayerMask = 1 << LayerMask.NameToLayer("Rocks");
+        resourcesLayerMask = 1 << LayerMask.NameToLayer("Resources");
         rootJointMarker.gameObject.SetActive(false);
         rootGrowthLine.gameObject.SetActive(false);
     }
@@ -40,7 +47,15 @@ public class GameManager : MonoBehaviour
                 // fork
                 Debug.Log("forked root " + rootPoint.segment + " at index " +
                           rootPoint.segment.points.IndexOf(rootPoint));
-                rootPoint.left = rootPoint.segment.tree.CreateRoot(rootPoint, true, mousePos);
+                var newSegment = rootPoint.segment.tree.CreateRoot(rootPoint, true, mousePos);
+                if (rootPoint.left)
+                {
+                    rootPoint.right = newSegment;
+                }
+                else
+                {
+                    rootPoint.left = newSegment;
+                }
             }
         }
         else if (node)
@@ -64,7 +79,8 @@ public class GameManager : MonoBehaviour
     {
         if (mousePos.y > 1) return null;
 
-        int resultCount = Physics2D.OverlapCircleNonAlloc(mousePos, mouseMaxContactRadius, results);
+
+        int resultCount = Physics2D.OverlapCircleNonAlloc(mousePos, mouseMaxContactRadius, results, rootNodesLayerMask);
 
         int minIndex = -1;
         float minValue = float.MaxValue;
@@ -92,7 +108,7 @@ public class GameManager : MonoBehaviour
             }
 
             var rootPoint = node.rootPoint;
-            if (rootPoint.left || rootPoint.right) return null;
+            if (rootPoint.left && rootPoint.right) return null;
 
             // to be able to extend a root from its last point
             // you need growth to be done
@@ -108,6 +124,17 @@ public class GameManager : MonoBehaviour
                 bool maxDepthReached = segmentDepth >= rootPoint.segment.tree.rootsConfig.maxDepth;
                 if (maxDepthReached)
                 {
+                    return null;
+                }
+            }
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                // no rocks allowed on the path
+                var rock = Physics2D.OverlapCircle(mousePos, 0.2f, rocksLayerMask);
+                if (rock)
+                {
+                    // TODO play sound
                     return null;
                 }
             }
