@@ -12,13 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e0dd66c4c7a45099d914b64bb3286aa, type: 3}
   m_Name: TreeConfig1
   m_EditorClassIdentifier: 
-  segmentLength: 0.5
-  branchStraightness: 0.9
-  branchWobbliness: 0.2
+  overgroundSegmentPrefab: {fileID: 3110020048797401804, guid: c8026043422dd404bbe13fd57294d5d8, type: 3}
+  segmentLength: 3
+  segmentDecreaseFactor: 0.95
+  branchStraightness: 0.8
+  branchWobbliness: 0.05
   curveSubdivisions: 6
-  branchingAngleDeg: 20
-  branchingAngleVariance: 0.1
+  thicknessFactor: 1
+  branchingAngleDeg: 40
+  branchingAngleVariance: 10
   branchingChance: 0.9
   alternateBranchingSide: 0
-  growthSpeed: 0.5
+  growthSpeed: 5
   maxDepth: 10
