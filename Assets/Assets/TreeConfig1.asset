@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   overgroundSegmentPrefab: {fileID: 3110020048797401804, guid: c8026043422dd404bbe13fd57294d5d8, type: 3}
   segmentLength: 3
-  segmentDecreaseFactor: 0.95
+  segmentDecreaseFactor: 0.85
   branchStraightness: 0.8
-  branchWobbliness: 0.05
-  curveSubdivisions: 6
-  thicknessFactor: 1
+  branchWobbliness: 0.08
+  curveSubdivisions: 4
+  thicknessFactor: 0.1
   branchingAngleDeg: 40
   branchingAngleVariance: 10
   branchingChance: 0.9
   alternateBranchingSide: 0
   growthSpeed: 5
-  maxDepth: 10
+  maxDepth: 11

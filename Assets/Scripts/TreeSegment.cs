@@ -15,11 +15,15 @@ public class TreeSegment : MonoBehaviour
 
     public int depth;
     public float growth;
+    public float growthFactor = 1;
 
     private AnimationCurve curve;
 
     public void Init(TreePoint parent, float relativeAngleDeg = 0)
     {
+        growthFactor = Random.Range(0.6f, 1.1f);
+        growth = Random.Range(-1f, 0f);
+
         this.parent = parent;
         this.depth = parent != null ? parent.segment.depth + parent.segment.points.IndexOf(parent) + 1 : 0;
 
@@ -82,7 +86,7 @@ public class TreeSegment : MonoBehaviour
             return;
         }
 
-        growth += Time.deltaTime * tree.config.growthSpeed;
+        growth += Time.deltaTime * tree.config.growthSpeed * growthFactor;
 
         // add next point
         if (!maxDepthReached && growth >= 1)
@@ -94,8 +98,12 @@ public class TreeSegment : MonoBehaviour
             if (points.Count > 4 && Random.Range(0, 1f) < tree.config.branchingChance)
             {
                 var branchingPoint = points[^4];
-                Debug.Log("branching at=" + branchingPoint.pos);
                 branchingPoint.left = tree.CreateBranch(branchingPoint, true);
+            }
+
+            if (points.Count > 4 && Random.Range(0, 1f) < tree.config.branchingChance)
+            {
+                var branchingPoint = points[^4];
                 branchingPoint.right = tree.CreateBranch(branchingPoint, false);
             }
 
