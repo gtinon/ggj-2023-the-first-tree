@@ -126,7 +126,7 @@ public class TreeObj : MonoBehaviour
     private void GrowTree()
     {
         var result = FindBestBranchToGrow(overground);
-        Debug.Log("growing tree : " + result.Item2 + " - " + result.Item1);
+        // Debug.Log("growing tree : " + result.Item2 + " - " + result.Item1);
         if (result.Item2 < 1) return;
 
         water -= costBranchWater;

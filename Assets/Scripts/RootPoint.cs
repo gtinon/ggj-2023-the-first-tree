@@ -10,6 +10,7 @@ public class RootPoint
     public RootSegment segment;
     public RootSegment left;
     public RootSegment right;
+    public float width;
 
     public Vector3 GetWorldPos()
     {

@@ -17,7 +17,7 @@ public class RootSegment : MonoBehaviour
     public float growth;
     public float growthFactor = 1;
 
-    private AnimationCurve curve;
+    private AnimationCurve curve = new AnimationCurve();
 
     public void Init(RootPoint parent, float relativeAngleDeg = 0)
     {
@@ -40,32 +40,13 @@ public class RootSegment : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, relativeAngleDeg);
         }
 
-        var subdivisions = tree.rootsConfig.curveSubdivisions;
-        line.positionCount = 1 + (tree.rootsConfig.maxDepth - depth - 1) * subdivisions;
-
-        var maxPoints = tree.rootsConfig.maxDepth - depth;
-        curve = new AnimationCurve();
-        for (int i = 0; i <= maxPoints; i++)
-        {
-            var time = (float)i / maxPoints;
-            if (curve.length <= i)
-            {
-                var result = curve.AddKey(time, 0.001f * i);
-            }
-            else
-            {
-                curve.MoveKey(i, new Keyframe(time, 0.001f * i));
-            }
-        }
-
-        line.widthCurve = curve;
-
         if (points.Count < 1)
         {
             points.Add(new RootPoint()
             {
                 segment = this,
                 pos = new Vector2(0, 0),
+                width = 1,
             });
         }
 
@@ -73,6 +54,8 @@ public class RootSegment : MonoBehaviour
         {
             AddPoint();
         }
+
+        line.widthCurve = curve;
 
         UpdateLine();
     }
@@ -87,14 +70,10 @@ public class RootSegment : MonoBehaviour
 
         if (growth < 1)
         {
-            growth += Time.deltaTime * tree.rootsConfig.growthSpeed * growthFactor;
-            if (growth > 1)
-            {
-                growth = 1;
-            }
+            var deltaGrowth = Math.Min(Time.deltaTime * tree.rootsConfig.growthSpeed * growthFactor, 1 - growth);
+            growth += deltaGrowth;
+            GrowAllPointsBefore(points.Count - 1, deltaGrowth);
         }
-
-        GrowAllPoints();
     }
 
     private void AddPoint()
@@ -109,28 +88,34 @@ public class RootSegment : MonoBehaviour
         var height = tree.rootsConfig.segmentLength * Random.Range(0.8f, 1.2f);
 
         Vector2 pos;
+        var parentP = points[^1];
         if (x != 0 && y != 0)
         {
             pos = new Vector2(x, y);
         }
         else
         {
-            pos = points[^1].pos + new Vector2(0, height);
+            pos = parentP.pos + new Vector2(0, height);
         }
+
+        var intermediateV = pos - parentP.pos;
+        var space = intermediateV.magnitude;
+        intermediateV = RotateDegs(intermediateV.normalized, Random.Range(-90 * wobbliness, 90 * wobbliness));
+        var s = Random.Range(space / 4, space * 3 / 4);
+        intermediateV.Scale(new Vector2(s, s));
 
         var rootPoint = new RootPoint()
         {
             segment = this,
             pos = pos,
-            bezierIntermediatePoint = points[^1].pos + new Vector2(
-                Random.Range(-wobbliness, wobbliness),
-                height * Random.Range(0.5f - wobbliness, 0.5f + wobbliness)),
+            bezierIntermediatePoint = parentP.pos + intermediateV,
+            width = 0f,
         };
         points.Add(rootPoint);
 
         // add light
         var light = Instantiate(tree.rootsConfig.rootPointLight, this.transform);
-        light.transform.localPosition = points[^1].pos +
+        light.transform.localPosition = parentP.pos +
                                         new Vector2(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f));
 
         // add child node with collider
@@ -145,58 +130,90 @@ public class RootSegment : MonoBehaviour
         tree.OnRootPointAdded(rootPoint);
     }
 
-    private void GrowAllPoints()
+    public static Vector2 RotateDegs(Vector2 v, float degs)
     {
-        var maxGrowth = tree.rootsConfig.maxDepth - depth;
-        var globalGrowth = points.Count - 2 + growth;
-
-        for (int i = 0; i < points.Count - 1; i++)
-        {
-            var k = curve.keys[i];
-            k.value = (globalGrowth - i) * tree.rootsConfig.thicknessFactor;
-            curve.MoveKey(i, k);
-            // curve.SmoothTangents(i, 1);
-        }
-
-        GrowLastPoint();
-
-        line.widthCurve = curve;
+        return RotateRads(v, degs * Mathf.Deg2Rad);
     }
 
-    private void GrowLastPoint()
+    public static Vector2 RotateRads(Vector2 v, float rads)
     {
-        var maxPoints = tree.rootsConfig.maxDepth - depth;
-        var time0 = (points.Count - 1) / (float)maxPoints;
-        var time1 = (points.Count - 0) / (float)maxPoints;
-        var time = Mathf.Lerp(time0, time1, growth);
-        var k = curve[points.Count - 1];
-        k.time = 0;
-        curve.MoveKey(points.Count - 1, new Keyframe(time, 0f, -2, 0));
+        return new Vector2(
+            v.x * Mathf.Cos(rads) - v.y * Mathf.Sin(rads),
+            v.x * Mathf.Sin(rads) + v.y * Mathf.Cos(rads)
+        );
+    }
+
+    private void GrowAllPointsBefore(int idx, float g)
+    {
+        for (int i = 0; i <= idx; i++)
+        {
+            points[i].width += g;
+        }
+
+        UpdateLineWidth();
+
+        if (parent != null)
+        {
+            var indexInParent = parent.segment.points.IndexOf(parent);
+            parent.segment.GrowAllPointsBefore(indexInParent, g);
+        }
     }
 
     private void UpdateLine()
     {
-        // first point
-        line.SetPosition(0, points[0].pos);
-
-        // compute all points along the bezier curves
-        var p0 = points[^2];
-        var p1 = points[^1];
         var subdivisions = tree.rootsConfig.curveSubdivisions;
-        var lastIdx = 0;
-        for (int i = 1; i <= subdivisions; i++)
+        int expectedPointCount = 1 + (points.Count - 1) * subdivisions;
+
+        // resize line if necessary
+        line.positionCount = expectedPointCount;
+
+        // update all points along the bezier curves
+        line.SetPosition(0, points[0].pos);
+        for (int i = 1; i < points.Count; i++)
         {
-            var p = ComputePoint(p0.pos, p1.bezierIntermediatePoint, p1.pos, (i + 1f) / subdivisions);
-            lastIdx = (points.Count - 2) * subdivisions + i;
-            line.SetPosition(lastIdx, p);
+            var p0 = points[i - 1];
+            var p1 = points[i];
+            for (int j = 0; j <= subdivisions; j++)
+            {
+                var p = ComputePoint(p0.pos, p1.bezierIntermediatePoint, p1.pos, (float)j / subdivisions);
+                var idx = (i - 1) * subdivisions + j;
+                line.SetPosition(idx, p);
+            }
         }
 
-        var initI = lastIdx;
-        var lastP = line.GetPosition(lastIdx);
-        for (int i = lastIdx + 1; i < line.positionCount; i++)
+        UpdateLineWidth();
+    }
+
+    private void UpdateLineWidth()
+    {
+        // update point widths
+        for (int i = 0; i < points.Count; i++)
         {
-            line.SetPosition(i, lastP + new Vector3(0, 0.2f * (i - initI), 0));
+            var p = points[i];
+            var t = i / (points.Count - 1f);
+            var w = p.width <= 0 ? 0.1f : Mathf.Log10(p.width) / 2f;
+            if (curve.length <= i)
+            {
+                curve.AddKey(new Keyframe(t, w, 0, 0));
+            }
+            else
+            {
+                var k = curve[i];
+                k.time = t;
+                k.value = w;
+                curve.MoveKey(i, k);
+            }
         }
+
+        // handle last point
+        var time0 = (points.Count - 2) / (points.Count - 1f);
+        var lastK = curve[points.Count - 1];
+        lastK.time = Mathf.Lerp(time0, 1, growth);
+        lastK.value = 0;
+        lastK.inTangent = 0f;
+        curve.MoveKey(points.Count - 1, lastK);
+
+        line.widthCurve = curve;
     }
 
     public static Vector2 ComputePoint(Vector2 p0, Vector2 p1, Vector2 p2, float t)
