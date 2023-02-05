@@ -79,8 +79,9 @@ public class TreeSegment : MonoBehaviour
     void Update()
     {
         bool maxDepthReached = depth + points.Count >= tree.treeConfig.maxDepth;
-        if (maxDepthReached && growth > 1)
+        if (maxDepthReached && growth >= 1)
         {
+            growth = 1;
             return;
         }
 

@@ -39,7 +39,8 @@ public class TreeObj : MonoBehaviour
     public float energyGain;
     public float mineralsGain;
 
-    [HideInInspector] public float timeToNextCycle = float.MaxValue;
+    [HideInInspector] public float timeToNextResourceCycle = float.MaxValue;
+    [HideInInspector] public float timeToNextGrowthCycle = float.MaxValue;
 
     private readonly HashSet<ResourcePool> connectedResourcePools = new HashSet<ResourcePool>();
 
@@ -51,16 +52,21 @@ public class TreeObj : MonoBehaviour
 
     void Update()
     {
+        timeToNextResourceCycle -= Time.deltaTime;
+        timeToNextGrowthCycle -= Time.deltaTime;
+
         // get resources
-        timeToNextCycle -= Time.deltaTime;
-        if (timeToNextCycle <= 0)
+        if (timeToNextResourceCycle <= 0)
         {
-            timeToNextCycle = resourceCycleTime;
+            timeToNextResourceCycle = resourceCycleTime;
 
             // get root resources - maintenance costs
             float deltaWater = Mathf.Min(maxWater - water, waterGain);
             float deltaEnergy = Mathf.Min(maxEnergy - energy, energyGain);
             float deltaMinerals = Mathf.Min(maxMinerals - minerals, mineralsGain);
+            water += deltaWater;
+            energy += deltaEnergy;
+            minerals += deltaMinerals;
 
             foreach (var pool in connectedResourcePools.ToList())
             {
@@ -73,30 +79,17 @@ public class TreeObj : MonoBehaviour
                 }
             }
 
-            water += deltaWater;
-            energy += deltaEnergy;
-            minerals += deltaMinerals;
-
             CheckForGameLost();
+        }
+
+        if (timeToNextGrowthCycle <= 0)
+        {
+            timeToNextGrowthCycle = resourceCycleTime * Random.Range(1.3f, 1.7f);
 
             // spend some for automatic growth
-            int growthThisCycle = 0;
-            var rootsCanItGrow = HowManyRootsCanItGrow();
-            var branchesCanItGrow = HowManyBranchesCanItGrow();
-            Debug.Log("check for growth: " + rootsCanItGrow + " - " + branchesCanItGrow + " - " +
-                      WillNewBranchKeepGainsPositive());
-            while (growthThisCycle <= 5 && branchesCanItGrow > 0 && rootsCanItGrow > 0 &&
-                   WillNewBranchKeepGainsPositive())
+            if (HowManyBranchesCanItGrow() > 0 && HowManyRootsCanItGrow() > 0)
             {
                 GrowTree();
-                growthThisCycle++;
-                rootsCanItGrow = HowManyRootsCanItGrow();
-                branchesCanItGrow = HowManyBranchesCanItGrow();
-            }
-
-            if (growthThisCycle > 0)
-            {
-                CheckForGameWon();
             }
         }
     }
@@ -133,12 +126,15 @@ public class TreeObj : MonoBehaviour
     private void GrowTree()
     {
         var result = FindBestBranchToGrow(overground);
+        Debug.Log("growing tree : " + result.Item2 + " - " + result.Item1);
         if (result.Item2 < 1) return;
 
         water -= costBranchWater;
         energy -= costBranchEnergy;
         minerals -= costBranchMinerals;
         result.Item1.GrowBranch();
+
+        CheckForGameWon();
 
         SoundManager.INSTANCE.Play(SFX.BRANCH_GROWTH);
     }
@@ -196,7 +192,8 @@ public class TreeObj : MonoBehaviour
         var w = Mathf.FloorToInt(water / costBranchWater);
         var e = Mathf.FloorToInt(energy / costBranchEnergy);
         var m = Mathf.FloorToInt(minerals / costBranchMinerals);
-        return Mathf.Min(w, e, m);
+        var v = Mathf.Min(w, e, m);
+        return v > 0 ? v : 0;
     }
 
     public int HowManyRootsCanItGrow()
@@ -204,7 +201,8 @@ public class TreeObj : MonoBehaviour
         var w = Mathf.FloorToInt(water / costRootWater);
         var e = Mathf.FloorToInt(energy / costRootEnergy);
         var m = Mathf.FloorToInt(minerals / costRootMinerals);
-        return Mathf.Min(w, e, m);
+        var v = Mathf.Min(w, e, m);
+        return v > 0 ? v : 0;
     }
 
     public TreeSegment CreateBranch(TreePoint parent, bool left)
@@ -256,5 +254,17 @@ public class TreeObj : MonoBehaviour
         seg.Init(parent, angleInDeg);
 
         return seg;
+    }
+
+    public bool CanGrowRoot()
+    {
+        return water >= costRootWater && minerals >= costRootMinerals && energy >= costRootEnergy;
+    }
+
+    public void ConsumeRootResources()
+    {
+        water -= costRootWater;
+        minerals -= costRootMinerals;
+        energy -= costRootEnergy;
     }
 }

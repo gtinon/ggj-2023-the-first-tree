@@ -5,13 +5,14 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager INSTANCE;
 
-    private AudioSource audio;
+    private new AudioSource audio;
 
     public AudioClip backgroundMusic;
-    
+
     public AudioClip gameStart;
     public AudioClip gameOverVictory;
     public AudioClip gameOverDefeat;
+    public AudioClip invalidAction;
     public AudioClip[] resourceSound;
     public AudioClip[] rockSounds;
     public AudioClip[] rootSounds;
@@ -37,7 +38,9 @@ public class SoundManager : MonoBehaviour
 
     public void StartBGM()
     {
-        // audio.
+        audio.Stop();
+        audio.clip = backgroundMusic;
+        audio.volume = 0.15f;
         audio.Play();
     }
 
@@ -57,6 +60,7 @@ public class SoundManager : MonoBehaviour
             SFX.HIT_ROCK => SelectRandom(rockSounds),
             SFX.ROOT_GROWTH => SelectRandom(rootSounds),
             SFX.BRANCH_GROWTH => SelectRandom(branchSounds),
+            SFX.NOT_ENGOUGH_RESOURCES => invalidAction,
             _ => null
         };
 
@@ -86,4 +90,5 @@ public enum SFX
     ROOT_GROWTH,
     BRANCH_GROWTH,
     HIT_RESOURCES,
+    NOT_ENGOUGH_RESOURCES,
 }

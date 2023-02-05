@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
@@ -9,6 +8,10 @@ public class GameManager : MonoBehaviour
     public RootJointMarker rootJointMarker;
     public LineRenderer rootGrowthLine;
 
+    public RectTransform introPanel;
+    public RectTransform helpPanel;
+    public RectTransform defeatPanel;
+    public RectTransform victoryPanel;
     public TreeObj tree;
 
     public float mouseMaxContactRadius = 3;
@@ -21,13 +24,12 @@ public class GameManager : MonoBehaviour
     public int rocksLayerMask;
     public int resourcesLayerMask;
 
+    private bool gameOver;
+    private bool gamePaused;
+
     void Awake()
     {
         INSTANCE = this;
-
-        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(0, 1, -10)));
-        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(0, -1, -10)));
-        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(1, 1, -10)));
     }
 
     void Start()
@@ -38,33 +40,54 @@ public class GameManager : MonoBehaviour
         resourcesLayerMask = 1 << LayerMask.NameToLayer("Resources");
         rootJointMarker.gameObject.SetActive(false);
         rootGrowthLine.gameObject.SetActive(false);
+
+        helpPanel.gameObject.SetActive(false);
+        defeatPanel.gameObject.SetActive(false);
+        victoryPanel.gameObject.SetActive(false);
+
+        introPanel.gameObject.SetActive(true);
     }
 
     void Update()
     {
         HandleUserInput();
+
+        if (!gameOver && Input.GetKeyDown(KeyCode.Escape))
+        {
+            gamePaused = !gamePaused;
+            helpPanel.gameObject.SetActive(gamePaused);
+            
+        }
+
+        if (gameOver && (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return)))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
     }
 
     public void StartGame()
     {
-        if (tree.timeToNextCycle > 10)
+        if (tree.timeToNextResourceCycle > 10)
         {
             SoundManager.INSTANCE.Play(SFX.GAME_START);
-            SoundManager.INSTANCE.Play(SFX.GAME_START);
-            tree.timeToNextCycle = tree.resourceCycleTime;
+            SoundManager.INSTANCE.StartBGM();
+            tree.timeToNextResourceCycle = tree.resourceCycleTime;
+            tree.timeToNextGrowthCycle = tree.resourceCycleTime * Random.Range(1.3f, 1.7f);
+
+            introPanel.gameObject.SetActive(false);
         }
     }
 
     public void GameOverWon()
     {
         SoundManager.INSTANCE.Play(SFX.GAME_OVER_VICTORY);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        gameOver = true;
     }
 
     public void GameOverLost()
     {
         SoundManager.INSTANCE.Play(SFX.GAME_OVER_DEFEAT);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        gameOver = true;
     }
 
     private void HandleUserInput()
@@ -78,6 +101,14 @@ public class GameManager : MonoBehaviour
             // start the game if necessary
             StartGame();
 
+            if (!tree.CanGrowRoot())
+            {
+                ResourceManager.INSTANCE.Highlight();
+                return;
+            }
+
+            tree.ConsumeRootResources();
+
             var rootPoint = node.rootPoint;
             if (rootPoint.segment.points.IndexOf(rootPoint) == rootPoint.segment.points.Count - 1)
             {
@@ -90,7 +121,7 @@ public class GameManager : MonoBehaviour
             {
                 // fork
                 // Debug.Log("forked root " + rootPoint.segment + " at index " +
-                          // rootPoint.segment.points.IndexOf(rootPoint));
+                // rootPoint.segment.points.IndexOf(rootPoint));
                 var newSegment = rootPoint.segment.tree.CreateRoot(rootPoint, true, mousePos);
                 if (rootPoint.left)
                 {
@@ -184,5 +215,10 @@ public class GameManager : MonoBehaviour
         }
 
         return node;
+    }
+
+    public static void Quit()
+    {
+        Application.Quit();
     }
 }
