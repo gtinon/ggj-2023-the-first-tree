@@ -30,10 +30,8 @@ public class RootSegment : MonoBehaviour
         if (parent != null)
         {
             transform.parent = parent.segment.transform;
-            transform.position = parent.segment.transform.position +
-                                 parent.segment.transform.TransformVector(new Vector3(parent.pos.x, parent.pos.y, 0));
-            transform.rotation =
-                parent.segment.transform.rotation * Quaternion.Euler(Vector3.forward * relativeAngleDeg);
+            transform.localPosition = parent.pos;
+            transform.localRotation = Quaternion.Euler(Vector3.forward * relativeAngleDeg);
         }
         else
         {
@@ -101,10 +99,10 @@ public class RootSegment : MonoBehaviour
 
     private void AddPoint()
     {
-        this.AddPoint(0, 0);
+        this.AddPoint(0, 0, false);
     }
 
-    public void AddPoint(float x, float y)
+    public void AddPoint(float x, float y, bool withResources = true)
     {
         float wobbliness = Math.Min(tree.rootsConfig.branchWobbliness, 1f) / 2f;
 
@@ -132,17 +130,19 @@ public class RootSegment : MonoBehaviour
 
         // add light
         var light = Instantiate(tree.rootsConfig.rootPointLight, this.transform);
-        light.transform.localPosition = points[^2].pos +
+        light.transform.localPosition = points[^1].pos +
                                         new Vector2(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f));
 
         // add child node with collider
         var colliderObj = Instantiate(tree.rootsConfig.rootNodeCollider, this.transform);
+        colliderObj.transform.localPosition = rootPoint.pos;
         var rootNodeCollider = colliderObj.GetComponent<RootNodeCollider>();
         rootNodeCollider.rootPoint = rootPoint;
-        colliderObj.transform.localPosition = points[^1].pos;
 
         UpdateLine();
         growth = 0;
+
+        tree.OnRootPointAdded(rootPoint);
     }
 
     private void GrowAllPoints()

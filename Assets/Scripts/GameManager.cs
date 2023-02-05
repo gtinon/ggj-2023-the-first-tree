@@ -1,9 +1,14 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager INSTANCE;
+
     public RootJointMarker rootJointMarker;
     public LineRenderer rootGrowthLine;
+
+    public TreeObj theTree;
 
     public float mouseMaxContactRadius = 3;
     public float mouseMinContactRadius = 1.5f;
@@ -11,9 +16,18 @@ public class GameManager : MonoBehaviour
     private readonly Collider2D[] results = new Collider2D[50];
     private Camera cam;
 
-    private int rootNodesLayerMask;
-    private int rocksLayerMask;
-    private int resourcesLayerMask;
+    public int rootNodesLayerMask;
+    public int rocksLayerMask;
+    public int resourcesLayerMask;
+
+    void Awake()
+    {
+        INSTANCE = this;
+
+        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(0, 1, -10)));
+        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(0, -1, -10)));
+        Debug.Log(Vector2.SignedAngle(Vector2.right, new Vector3(1, 1, -10)));
+    }
 
     void Start()
     {
@@ -27,6 +41,21 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        HandleUserInput();
+    }
+
+    public void GameOverWon()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void GameOverLost()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    private void HandleUserInput()
+    {
         var mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
         var node = FindRootNodeToExtend(mousePos);
@@ -37,8 +66,7 @@ public class GameManager : MonoBehaviour
             if (rootPoint.segment.points.IndexOf(rootPoint) == rootPoint.segment.points.Count - 1)
             {
                 // just extend the root
-                var worldPos = mousePos - rootPoint.segment.transform.position;
-                var localPos = rootPoint.segment.transform.InverseTransformVector(worldPos);
+                var localPos = rootPoint.segment.transform.InverseTransformPoint(mousePos);
                 rootPoint.segment.AddPoint(localPos.x, localPos.y);
                 Debug.Log("extend current root");
             }
@@ -78,7 +106,6 @@ public class GameManager : MonoBehaviour
     private RootNodeCollider FindRootNodeToExtend(Vector3 mousePos)
     {
         if (mousePos.y > 1) return null;
-
 
         int resultCount = Physics2D.OverlapCircleNonAlloc(mousePos, mouseMaxContactRadius, results, rootNodesLayerMask);
 

@@ -10,4 +10,9 @@ public class RootPoint
     public RootSegment segment;
     public RootSegment left;
     public RootSegment right;
+
+    public Vector3 GetWorldPos()
+    {
+        return segment.transform.TransformPoint(pos);
+    }
 }

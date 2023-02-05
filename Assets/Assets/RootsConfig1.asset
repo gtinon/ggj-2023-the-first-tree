@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   segmentPrefab: {fileID: 3110020048797401804, guid: 9790580bebc8c0f428a36b44715e62de, type: 3}
   segmentLength: 2
-  branchWobbliness: 0.3
+  branchWobbliness: 0.5
   curveSubdivisions: 6
-  thicknessFactor: 0.15
+  thicknessFactor: 0.1
   growthSpeed: 1
-  maxDepth: 20
+  maxDepth: 10
   rootPointLight: {fileID: 8575486205618485965, guid: 609fe2dd7603c01479cc8b6a7bc3e386, type: 3}
   rootNodeCollider: {fileID: 1755771985733008411, guid: f29cd3f4cb4822f4ebfd77f553a97dde, type: 3}

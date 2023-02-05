@@ -1493,7 +1493,6 @@ MonoBehaviour:
   - {x: 0.6953567, y: 1}
   - {x: 0.74999785, y: 1}
   m_TanArray:
-  - {x: 0, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
@@ -1507,7 +1506,6 @@ MonoBehaviour:
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
-  - {x: 1, y: 1, z: 1, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
@@ -1521,7 +1519,6 @@ MonoBehaviour:
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
-  - {x: -431602080, y: 0, z: 1, w: 0}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
@@ -1535,7 +1532,6 @@ MonoBehaviour:
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
-  - {x: -431602080, y: -431602080, z: -431602080, w: 0}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
@@ -1564,7 +1560,11 @@ MonoBehaviour:
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
-  - {x: 0, y: 0, z: -431602080, w: -431602080}
+  - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
+  - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
+  - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
+  - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
+  - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
   - {x: -431602080, y: -431602080, z: -431602080, w: -431602080}
@@ -2160,6 +2160,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3795678476391178288}
+  - component: {fileID: 6782115271809986745}
+  - component: {fileID: 5968520456350402045}
   m_Layer: 8
   m_Name: Water
   m_TagString: Untagged
@@ -2175,7 +2177,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3795678476391178289}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.84, y: 0.45, z: 0.724993}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2183,3 +2185,54 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6782115271809986745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3795678476391178289}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc42dad614d35e04db5dd43aac6bfa5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  water: 100
+  minerals: 0
+  waterExtraction: 0
+  mineralsExtraction: 0
+--- !u!70 &5968520456350402045
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3795678476391178289}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 4.3, y: 1.46}
+  m_Direction: 1

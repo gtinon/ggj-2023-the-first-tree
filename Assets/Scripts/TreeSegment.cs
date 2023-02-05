@@ -30,10 +30,8 @@ public class TreeSegment : MonoBehaviour
         if (parent != null)
         {
             transform.parent = parent.segment.transform;
-            transform.position = parent.segment.transform.position +
-                                 parent.segment.transform.TransformVector(new Vector3(parent.pos.x, parent.pos.y, 0));
-            transform.rotation =
-                parent.segment.transform.rotation * Quaternion.Euler(Vector3.forward * relativeAngleDeg);
+            transform.localPosition = parent.pos;
+            transform.localRotation = Quaternion.Euler(Vector3.forward * relativeAngleDeg);
         }
         else
         {
@@ -87,29 +85,48 @@ public class TreeSegment : MonoBehaviour
 
         growth += Time.deltaTime * tree.treeConfig.growthSpeed * growthFactor;
 
-        // add next point
-        if (!maxDepthReached && growth >= 1)
+        if (growth <= 1)
         {
-            AddPoint();
-            UpdateLine();
+            GrowAllPoints();
+        }
+    }
 
-            // maybe branch out
-            if (points.Count > 4 && Random.Range(0, 1f) < tree.treeConfig.branchingChance)
-            {
-                var branchingPoint = points[^4];
-                branchingPoint.left = tree.CreateBranch(branchingPoint, true);
-            }
+    public float ComputeGrowthScore()
+    {
+        bool maxDepthReached = depth + points.Count >= tree.treeConfig.maxDepth;
+        if (maxDepthReached) return -1;
 
-            if (points.Count > 4 && Random.Range(0, 1f) < tree.treeConfig.branchingChance)
-            {
-                var branchingPoint = points[^4];
-                branchingPoint.right = tree.CreateBranch(branchingPoint, false);
-            }
+        return growth;
+    }
 
-            growth = 0;
+    public bool GrowBranch()
+    {
+        // add next point
+        bool maxDepthReached = depth + points.Count >= tree.treeConfig.maxDepth;
+        if (maxDepthReached || growth < 1)
+        {
+            return false;
         }
 
-        GrowAllPoints();
+        AddPoint();
+        UpdateLine();
+
+        // maybe branch out
+        if (points.Count > 4 && Random.Range(0, 1f) < tree.treeConfig.branchingChance)
+        {
+            var branchingPoint = points[^4];
+            branchingPoint.left = tree.CreateBranch(branchingPoint, true);
+        }
+
+        if (points.Count > 4 && Random.Range(0, 1f) < tree.treeConfig.branchingChance)
+        {
+            var branchingPoint = points[^4];
+            branchingPoint.right = tree.CreateBranch(branchingPoint, false);
+        }
+
+        growth = 0;
+
+        return true;
     }
 
     private void AddPoint()
@@ -120,14 +137,17 @@ public class TreeSegment : MonoBehaviour
         var lengthFactor = Mathf.Pow(tree.treeConfig.segmentDecreaseFactor, depth + points.Count);
         var height = tree.treeConfig.segmentLength * lengthFactor * Random.Range(0.8f, 1.2f);
 
-        points.Add(new TreePoint()
+        var point = new TreePoint()
         {
             segment = this,
             pos = points[^1].pos + new Vector2(Random.Range(-unstraightness, unstraightness), height),
             bezierIntermediatePoint = points[^1].pos + new Vector2(
                 Random.Range(-unstraightness * 2, unstraightness * 2),
                 height * Random.Range(0.5f - wobbliness, 0.5f + wobbliness)),
-        });
+        };
+        points.Add(point);
+
+        tree.OnBranchPointAdded(point);
     }
 
     private void GrowAllPoints()
