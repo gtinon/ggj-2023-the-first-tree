@@ -25,7 +25,8 @@ public class GameManager : MonoBehaviour
     public int resourcesLayerMask;
 
     private bool gameOver;
-    private bool gamePaused;
+
+    public bool GamePaused { get; private set; }
 
     void Awake()
     {
@@ -54,14 +55,15 @@ public class GameManager : MonoBehaviour
 
         if (!gameOver && Input.GetKeyDown(KeyCode.Escape))
         {
-            gamePaused = !gamePaused;
-            helpPanel.gameObject.SetActive(gamePaused);
-            
+            GamePaused = !GamePaused;
+            Time.timeScale = GamePaused ? 0 : 1;
+            helpPanel.gameObject.SetActive(GamePaused);
         }
 
         if (gameOver && (Input.GetKeyDown(KeyCode.Escape) || Input.GetKeyDown(KeyCode.Return)))
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            Time.timeScale = 1;
         }
     }
 
@@ -82,16 +84,27 @@ public class GameManager : MonoBehaviour
     {
         SoundManager.INSTANCE.Play(SFX.GAME_OVER_VICTORY);
         gameOver = true;
+        victoryPanel.gameObject.SetActive(true);
+        Time.timeScale = 0;
     }
 
     public void GameOverLost()
     {
         SoundManager.INSTANCE.Play(SFX.GAME_OVER_DEFEAT);
         gameOver = true;
+        defeatPanel.gameObject.SetActive(true);
+        Time.timeScale = 0;
     }
 
     private void HandleUserInput()
     {
+        if (GamePaused)
+        {
+            rootJointMarker.gameObject.SetActive(false);
+            rootGrowthLine.gameObject.SetActive(false);
+            return;
+        }
+
         var mousePos = cam.ScreenToWorldPoint(Input.mousePosition);
 
         var node = FindRootNodeToExtend(mousePos);
