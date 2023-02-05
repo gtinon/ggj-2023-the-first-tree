@@ -87,7 +87,7 @@ public class TreeObj : MonoBehaviour
             timeToNextGrowthCycle = resourceCycleTime * Random.Range(1.3f, 1.7f);
 
             // spend some for automatic growth
-            if (HowManyBranchesCanItGrow() > 0 && HowManyRootsCanItGrow() > 0)
+            if (HowManyBranchesCanItGrow() > 0 && HowManyRootsCanItGrow() > 2)
             {
                 GrowTree();
             }
@@ -180,11 +180,33 @@ public class TreeObj : MonoBehaviour
 
     private void CheckForGameWon()
     {
+        if (HasReachedMaxDepth(overground))
+        {
+            GameManager.INSTANCE.GameOverWon();
+        }
     }
 
-    public bool WillNewBranchKeepGainsPositive()
+    private bool HasReachedMaxDepth(TreeSegment branch)
     {
-        return waterGain > Math.Abs(gainLeafWater);
+        var d = branch.depth + branch.points.Count;
+        if (d < treeConfig.maxDepth) return false;
+
+        foreach (var point in branch.points)
+        {
+            if (point.left)
+            {
+                var maxed = HasReachedMaxDepth(point.left);
+                if (!maxed) return false;
+            }
+
+            if (point.right)
+            {
+                var maxed = HasReachedMaxDepth(point.right);
+                if (!maxed) return false;
+            }
+        }
+
+        return true;
     }
 
     public int HowManyBranchesCanItGrow()
