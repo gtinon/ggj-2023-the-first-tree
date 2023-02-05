@@ -18,6 +18,6 @@ MonoBehaviour:
   curveSubdivisions: 6
   thicknessFactor: 0.1
   growthSpeed: 1
-  maxDepth: 10
+  maxDepth: 20
   rootPointLight: {fileID: 8575486205618485965, guid: 609fe2dd7603c01479cc8b6a7bc3e386, type: 3}
   rootNodeCollider: {fileID: 1755771985733008411, guid: f29cd3f4cb4822f4ebfd77f553a97dde, type: 3}
