@@ -22,19 +22,20 @@ public class TreeSegment : MonoBehaviour
     public void Init(TreePoint parent, float relativeAngleDeg = 0)
     {
         growthFactor = Random.Range(0.6f, 1.1f);
-        growth = Random.Range(-1f, 0f);
 
         this.parent = parent;
         this.depth = parent != null ? parent.segment.depth + parent.segment.points.IndexOf(parent) + 1 : 0;
 
         if (parent != null)
         {
+            growth = Random.Range(-1f, 0f);
             transform.parent = parent.segment.transform;
             transform.localPosition = parent.pos;
             transform.localRotation = Quaternion.Euler(Vector3.forward * relativeAngleDeg);
         }
         else
         {
+            growth = 0;
             transform.parent = tree.transform;
         }
 

@@ -39,7 +39,7 @@ public class TreeObj : MonoBehaviour
     public float energyGain;
     public float mineralsGain;
 
-    private float timeToNextCycle = float.MaxValue;
+    [HideInInspector] public float timeToNextCycle = float.MaxValue;
 
     private readonly HashSet<ResourcePool> connectedResourcePools = new HashSet<ResourcePool>();
 
@@ -80,13 +80,23 @@ public class TreeObj : MonoBehaviour
             CheckForGameLost();
 
             // spend some for automatic growth
+            int growthThisCycle = 0;
             var rootsCanItGrow = HowManyRootsCanItGrow();
             var branchesCanItGrow = HowManyBranchesCanItGrow();
-            while (branchesCanItGrow > 0 && rootsCanItGrow > 3 && WillNewBranchKeepGainsPositive())
+            Debug.Log("check for growth: " + rootsCanItGrow + " - " + branchesCanItGrow + " - " +
+                      WillNewBranchKeepGainsPositive());
+            while (growthThisCycle <= 5 && branchesCanItGrow > 0 && rootsCanItGrow > 0 &&
+                   WillNewBranchKeepGainsPositive())
             {
                 GrowTree();
+                growthThisCycle++;
                 rootsCanItGrow = HowManyRootsCanItGrow();
                 branchesCanItGrow = HowManyBranchesCanItGrow();
+            }
+
+            if (growthThisCycle > 0)
+            {
+                CheckForGameWon();
             }
         }
     }
@@ -100,13 +110,13 @@ public class TreeObj : MonoBehaviour
 
     public void OnRootPointAdded(RootPoint point)
     {
+        SoundManager.INSTANCE.Play(SFX.ROOT_GROWTH);
         maxWater += 0.5f;
         maxEnergy += 0.5f;
         maxMinerals += 0.1f;
 
         var pos = point.GetWorldPos();
-        var res = Physics2D.OverlapCircleAll(pos, 2, GameManager.INSTANCE.resourcesLayerMask);
-        Debug.Log("found resources pools : " + res.Length);
+        var res = Physics2D.OverlapCircleAll(pos, 0.5f, GameManager.INSTANCE.resourcesLayerMask);
         foreach (var r in res)
         {
             var pool = r.gameObject.GetComponent<ResourcePool>();
@@ -115,8 +125,9 @@ public class TreeObj : MonoBehaviour
             waterGain += gainRootWaterArea;
             mineralsGain += gainRootMinerals;
             connectedResourcePools.Add(pool);
-            Debug.Log("added resource pool : " + pool);
         }
+
+        if (res.Length > 0) SoundManager.INSTANCE.Play(SFX.HIT_RESOURCES);
     }
 
     private void GrowTree()
@@ -128,6 +139,8 @@ public class TreeObj : MonoBehaviour
         energy -= costBranchEnergy;
         minerals -= costBranchMinerals;
         result.Item1.GrowBranch();
+
+        SoundManager.INSTANCE.Play(SFX.BRANCH_GROWTH);
     }
 
     private Tuple<TreeSegment, float> FindBestBranchToGrow(TreeSegment branch)
@@ -175,7 +188,7 @@ public class TreeObj : MonoBehaviour
 
     public bool WillNewBranchKeepGainsPositive()
     {
-        return waterGain > gainLeafWater;
+        return waterGain > Math.Abs(gainLeafWater);
     }
 
     public int HowManyBranchesCanItGrow()
@@ -228,12 +241,6 @@ public class TreeObj : MonoBehaviour
 
         seg.Init(parent, relativeAngle);
 
-        // start the game if necessary
-        if (timeToNextCycle > 10)
-        {
-            timeToNextCycle = resourceCycleTime;
-        }
-
         return seg;
     }
 
@@ -247,12 +254,6 @@ public class TreeObj : MonoBehaviour
         var seg = obj.GetComponent<RootSegment>();
         seg.tree = this;
         seg.Init(parent, angleInDeg);
-
-        // start the game if necessary
-        if (timeToNextCycle > 10)
-        {
-            timeToNextCycle = resourceCycleTime;
-        }
 
         return seg;
     }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class GameManager : MonoBehaviour
     public RootJointMarker rootJointMarker;
     public LineRenderer rootGrowthLine;
 
-    public TreeObj theTree;
+    public TreeObj tree;
 
     public float mouseMaxContactRadius = 3;
     public float mouseMinContactRadius = 1.5f;
@@ -44,13 +45,25 @@ public class GameManager : MonoBehaviour
         HandleUserInput();
     }
 
+    public void StartGame()
+    {
+        if (tree.timeToNextCycle > 10)
+        {
+            SoundManager.INSTANCE.Play(SFX.GAME_START);
+            SoundManager.INSTANCE.Play(SFX.GAME_START);
+            tree.timeToNextCycle = tree.resourceCycleTime;
+        }
+    }
+
     public void GameOverWon()
     {
+        SoundManager.INSTANCE.Play(SFX.GAME_OVER_VICTORY);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void GameOverLost()
     {
+        SoundManager.INSTANCE.Play(SFX.GAME_OVER_DEFEAT);
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
@@ -62,19 +75,22 @@ public class GameManager : MonoBehaviour
 
         if (node && Input.GetMouseButtonDown(0))
         {
+            // start the game if necessary
+            StartGame();
+
             var rootPoint = node.rootPoint;
             if (rootPoint.segment.points.IndexOf(rootPoint) == rootPoint.segment.points.Count - 1)
             {
                 // just extend the root
                 var localPos = rootPoint.segment.transform.InverseTransformPoint(mousePos);
                 rootPoint.segment.AddPoint(localPos.x, localPos.y);
-                Debug.Log("extend current root");
+                // Debug.Log("extend current root");
             }
             else
             {
                 // fork
-                Debug.Log("forked root " + rootPoint.segment + " at index " +
-                          rootPoint.segment.points.IndexOf(rootPoint));
+                // Debug.Log("forked root " + rootPoint.segment + " at index " +
+                          // rootPoint.segment.points.IndexOf(rootPoint));
                 var newSegment = rootPoint.segment.tree.CreateRoot(rootPoint, true, mousePos);
                 if (rootPoint.left)
                 {
@@ -161,7 +177,7 @@ public class GameManager : MonoBehaviour
                 var rock = Physics2D.OverlapCircle(mousePos, 0.2f, rocksLayerMask);
                 if (rock)
                 {
-                    // TODO play sound
+                    SoundManager.INSTANCE.Play(SFX.HIT_ROCK);
                     return null;
                 }
             }
